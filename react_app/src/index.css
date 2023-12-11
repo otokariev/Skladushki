@@ -1,0 +1,21 @@
+html{
+  height: 100vh;
+}
+ul,li{
+  list-style: none;
+  
+}
+a{
+  text-decoration: none;
+  color: white;
+}
+a:hover {
+  color: rgb(218, 217, 217);
+}
+button:hover {
+  background-color: rgb(238, 238, 238);
+}
+*{
+  padding: 0;
+  margin: 0;box-sizing: border-box;
+};
