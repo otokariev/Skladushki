@@ -1,38 +1,55 @@
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponse
+from rest_framework import generics
 from django.shortcuts import render
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from .models import Member
+from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
+from .serializers import MemberSerializer
+
+
+class MemberAPIListPagination(PageNumberPagination):
+    page_size = 3
+    page_size_query_param = 'page_size'
+    max_page_size = 2
+
+
+class MemberAPIList(generics.ListCreateAPIView):
+    queryset = Member.objects.all()
+    serializer_class = MemberSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly, )
+    pagination_class = MemberAPIListPagination
+
+
+class MemberAPIUpdate(generics.RetrieveUpdateAPIView):
+    queryset = Member.objects.all()
+    serializer_class = MemberSerializer
+    permission_classes = (IsOwnerOrReadOnly, )
+    # authentication_classes = (TokenAuthentication, )
+
+
+class MemberAPIDestroy(generics.RetrieveDestroyAPIView):
+    queryset = Member.objects.all()
+    serializer_class = MemberSerializer
+    permission_classes = (IsAdminOrReadOnly, )
 
 
 def index(request):
-    return render(request, 'members/index.html')
+    return HttpResponse('Главная страница')
 
 
 def about(request):
-    return HttpResponse('Информация о сайте')
+    return HttpResponse('О сайте')
 
 
 def contacts(request):
-    return HttpResponse('Телефон, почта, соц.сети')
+    return HttpResponse('Контакты')
 
 
 def register(request):
-    return HttpResponse('Форма заполнения анкеты')
+    return HttpResponse('Регистрация')
 
 
 def login(request):
-    return HttpResponse('Форма входа на сайт')
-
-
-def forgot_password(request):
-    return HttpResponse('Форма смены пароля')
-
-
-def categories(request, categories_id):
-    return HttpResponse(f'<h1>Категории</h1><p>id = {categories_id}</p>')
-
-
-def categories_by_slug(request, categories_slug):
-    return HttpResponse(f'<h1>Категории</h1><p>slug = {categories_slug}</p>')
-
-
-def page_not_found(request, exception):
-    return HttpResponseNotFound('<h2>Страница не найдена</h2>')
+    return HttpResponse('Логин')
