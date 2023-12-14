@@ -19,3 +19,20 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class About(models.Model):
+    header = models.CharField(max_length=100)
+    text = models.CharField(max_length=2000)
+
+    def __str__(self):
+        return self.header
+
+
+class Contacts(models.Model):
+    header = models.CharField(max_length=100)
+    phone = models.CharField(max_length=15)
+    email = models.EmailField()
+
+    def __str__(self):
+        return self.header

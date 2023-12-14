@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Member
+from .models import Member, About, Contacts
 
 
 class MemberSerializer(serializers.ModelSerializer):
@@ -7,4 +7,18 @@ class MemberSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Member
+        fields = '__all__'
+
+
+class AboutSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = About
+        fields = '__all__'
+
+
+class ContactsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Contacts
         fields = '__all__'

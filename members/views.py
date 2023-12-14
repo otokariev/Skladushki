@@ -1,12 +1,13 @@
 from django.http import HttpResponse
-from rest_framework import generics
+from rest_framework import generics, viewsets
 from django.shortcuts import render
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
-from .models import Member
+from .models import Member, About, Contacts
 from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
-from .serializers import MemberSerializer
+from .serializers import MemberSerializer, AboutSerializer, ContactsSerializer
 
 
 class MemberAPIListPagination(PageNumberPagination):
@@ -35,8 +36,22 @@ class MemberAPIDestroy(generics.RetrieveDestroyAPIView):
     permission_classes = (IsAdminOrReadOnly, )
 
 
-def index(request):
-    return HttpResponse('Главная страница')
+class AboutView(ListAPIView):
+    queryset = About.objects.all()
+    serializer_class = AboutSerializer
+
+
+class ContactsView(ListAPIView):
+    queryset = Contacts.objects.all()
+    serializer_class = ContactsSerializer
+
+
+def profile(request):  # main page when authorized
+    return HttpResponse('Профиль пользователя')
+
+
+def search(request):  # main page when unregistered or unauthorized
+    return HttpResponse('Поиск')
 
 
 def about(request):
