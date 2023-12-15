@@ -8,30 +8,31 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from .models import UserProfile, About, Contacts
 from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
 from .serializers import UserSerializer, AboutSerializer, ContactsSerializer
+from django.contrib.auth.models import User
 
 
 class UserAPIListPagination(PageNumberPagination):
     page_size = 3
     page_size_query_param = 'page_size'
-    max_page_size = 2
+    max_page_size = 1000
 
 
 class UserAPIList(generics.ListCreateAPIView):
-    queryset = UserProfile.objects.all()
+    queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
     pagination_class = UserAPIListPagination
 
 
 class UserAPIUpdate(generics.RetrieveUpdateAPIView):
-    queryset = UserProfile.objects.all()
+    queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsOwnerOrReadOnly, )
     # authentication_classes = (TokenAuthentication, )
 
 
 class UserAPIDestroy(generics.RetrieveDestroyAPIView):
-    queryset = UserProfile.objects.all()
+    queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdminOrReadOnly, )
 
