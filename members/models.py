@@ -2,9 +2,15 @@ from django.contrib.auth.models import User
 from django.db import models
 
 
-class Member(models.Model):
-    name = models.CharField(max_length=255)  # name
-    bio = models.TextField(blank=True)  # about
+class UserProfile(models.Model):
+    name = models.CharField(max_length=255)
+    surname = models.CharField(max_length=255)
+    email = models.EmailField()
+    # slug = models.SlugField(max_length=255)
+    phone = models.CharField(max_length=255, blank=True, null=True)  # !FIXME Add phone check
+    city = models.CharField(max_length=255, blank=True, null=True)
+    bio = models.TextField(max_length=1000, blank=True, null=True)
+    photo = models.ImageField(blank=True, null=True)  # !FIXME Add parameters
     time_create = models.DateTimeField(auto_now_add=True)
     time_update = models.DateTimeField(auto_now=True)
     category = models.ForeignKey('Category', on_delete=models.PROTECT, null=True)

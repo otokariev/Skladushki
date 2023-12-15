@@ -22,9 +22,9 @@ from members.views import *
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('members.urls')),
-    path('api/v1/members/', MemberAPIList.as_view()),
-    path('api/v1/members/<int:pk>/', MemberAPIUpdate.as_view()),
-    path('api/v1/members_delete/<int:pk>/', MemberAPIDestroy.as_view()),
+    path('api/v1/members/', UserAPIList.as_view(), name='members'),
+    path('api/v1/members/<int:pk>/', UserAPIUpdate.as_view(), name='members_id'),
+    path('api/v1/members_delete/<int:pk>/', UserAPIDestroy.as_view(), name='members_delete'),
     path('api/v1/about/', AboutView.as_view(), name='about'),
     path('api/v1/contacts/', ContactsView.as_view(), name='contacts'),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

@@ -1,12 +1,12 @@
 from rest_framework import serializers
-from .models import Member, About, Contacts
+from .models import UserProfile, About, Contacts
 
 
-class MemberSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:
-        model = Member
+        model = UserProfile
         fields = '__all__'
 
 
