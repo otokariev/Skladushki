@@ -22,15 +22,20 @@ from members.views import *
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('members.urls')),
-    path('api/v1/members/', UserAPIList.as_view(), name='members'),
-    path('api/v1/members/<int:pk>/', UserAPIUpdate.as_view(), name='members_id'),
-    path('api/v1/members_delete/<int:pk>/', UserAPIDestroy.as_view(), name='members_delete'),
+
+    path('api/v1/members/', UserAPIList.as_view(), name='users'),
+    path('api/v1/members/<int:pk>/', UserAPIUpdate.as_view(), name='user_id'),
+    # path('api/v1/members_delete/<int:pk>/', UserModel.as_view(), name='members_delete'),
+
     path('api/v1/about/', AboutView.as_view(), name='about'),
     path('api/v1/contacts/', ContactsView.as_view(), name='contacts'),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
-    # path('api/v1/drf-auth/', include('rest_framework.urls')),
+
+    path('api/v1/authorisation/', include('rest_framework.urls')),
+
     # path('api/v1/auth/', include('djoser.urls')),
     # re_path(r'^auth/', include('djoser.urls.authtoken')),
+
+    # path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    # path('api/v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # path('api/v1/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
 ]

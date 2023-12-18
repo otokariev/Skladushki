@@ -1,14 +1,13 @@
 from rest_framework import serializers
-from .models import UserProfile, About, Contacts
-from django.contrib.auth.models import User
+from .models import UserModel, UserProfile, About, Contacts
 
 
 class UserSerializer(serializers.ModelSerializer):
     # user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:
-        model = User
-        fields = ['id', 'first_name', 'last_name', 'email']
+        model = UserModel
+        fields = ['first_name', 'last_name', 'username', 'email', 'password']
 
 
 class AboutSerializer(serializers.ModelSerializer):

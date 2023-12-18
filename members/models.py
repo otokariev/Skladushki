@@ -1,5 +1,34 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AbstractUser, Group, Permission
 from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+from django.core.exceptions import ValidationError
+
+
+class UserModel(AbstractUser):
+    user_pk = models.AutoField(primary_key=True)
+    # password_2 = models.CharField(max_length=128, null=True, blank=True)  #!FIXME check
+    groups = models.ManyToManyField(Group, related_name="user_groups")
+    user_permissions = models.ManyToManyField(Permission, related_name="user_user_permissions")
+
+    def save(self, **kwargs):
+        super().save(**kwargs)
+        if not self.password:
+            return
+        self.set_password(self.password)
+        # if not self.password:
+        #     return
+        # if self.password_2 != self.password:
+        #     raise ValidationError({"password_2": ["Пароли должны совпадать."]})  #!FIXME check
+
+    def __str__(self):
+        return self.user_pk
+
+
+# @receiver(pre_save, sender=UserModel)  #!FIXME check
+# def check_passwords(sender, instance, **kwargs):
+#     if instance.password_1 != instance.password_2:
+#         raise ValidationError("Пароли не совпадают")
 
 
 class UserProfile(models.Model):
