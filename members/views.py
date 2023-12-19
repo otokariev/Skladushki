@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from .models import UserModel, UserProfile, About, Contacts
 from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
-from .serializers import UserSerializer, AboutSerializer, ContactsSerializer
+from .serializers import UserModelSerializer, AboutSerializer, ContactsSerializer
 from django.contrib.auth.models import User
 
 
@@ -57,24 +57,24 @@ class UserAPIListPagination(PageNumberPagination):
 #         return Response("Student Deleted Successfully", status=status.HTTP_204_NO_CONTENT)
 
 
-class UserAPIList(generics.ListCreateAPIView):
+class UserModelAPIList(generics.ListCreateAPIView):
     queryset = UserModel.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserModelSerializer
     # permission_classes = (IsAuthenticatedOrReadOnly, )
     pagination_class = UserAPIListPagination
 
 
-class UserAPIUpdate(generics.RetrieveUpdateAPIView):
+class UserModelAPIUpdate(generics.RetrieveUpdateAPIView):
     queryset = UserModel.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserModelSerializer
     permission_classes = (IsOwnerOrReadOnly, )
     # authentication_classes = (TokenAuthentication, )
 
 
-class UserAPIDestroy(generics.RetrieveDestroyAPIView):
-    queryset = UserModel.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = (IsAdminOrReadOnly, )
+# class UserModelAPIDestroy(generics.RetrieveDestroyAPIView):
+#     queryset = UserModel.objects.all()
+#     serializer_class = UserModelSerializer
+#     permission_classes = (IsAdminOrReadOnly, )
 
 
 class AboutView(ListAPIView):

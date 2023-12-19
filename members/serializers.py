@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import UserModel, UserProfile, About, Contacts
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserModelSerializer(serializers.ModelSerializer):
     # user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:

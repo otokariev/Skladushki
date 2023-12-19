@@ -23,16 +23,16 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('members.urls')),
 
-    path('api/v1/members/', UserAPIList.as_view(), name='users'),
-    path('api/v1/members/<int:pk>/', UserAPIUpdate.as_view(), name='user_id'),
-    # path('api/v1/members_delete/<int:pk>/', UserModel.as_view(), name='members_delete'),
+    path('api/user/', UserModelAPIList.as_view(), name='user'),
+    path('api/user/<int:pk>/', UserModelAPIUpdate.as_view(), name='user_id'),
+    # path('api/user_delete/<int:pk>/', UserModel.as_view(), name='user_delete'),
 
-    path('api/v1/about/', AboutView.as_view(), name='about'),
-    path('api/v1/contacts/', ContactsView.as_view(), name='contacts'),
+    path('api/about/', AboutView.as_view(), name='about'),
+    path('api/contacts/', ContactsView.as_view(), name='contacts'),
 
-    path('api/v1/authorisation/', include('rest_framework.urls')),
+    path('api/auth/', include('rest_framework.urls')),
 
-    # path('api/v1/auth/', include('djoser.urls')),
+    # path('api/auth/', include('djoser.urls')),
     # re_path(r'^auth/', include('djoser.urls.authtoken')),
 
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

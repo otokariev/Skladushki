@@ -37,14 +37,14 @@ class UserProfile(models.Model):
     city = models.CharField(max_length=255, blank=True, null=True)
     bio = models.TextField(max_length=1000, blank=True, null=True)
     photo = models.ImageField(blank=True, null=True)  # !FIXME Add parameters
-    category = models.ForeignKey('Category', on_delete=models.PROTECT)
-    user = models.ForeignKey(User, verbose_name='Пользователь', on_delete=models.CASCADE)
+    sex = models.ForeignKey('Sex', on_delete=models.PROTECT)
+    user_model = models.ForeignKey(UserModel, verbose_name='Пользователь', on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.user
+        return self.user_model
 
 
-class Category(models.Model):
+class Sex(models.Model):
     name = models.CharField(max_length=100, db_index=True)
 
     def __str__(self):
