@@ -1,13 +1,13 @@
 from rest_framework import serializers
-from .models import UserModel, UserProfile, About, Contacts
+from .models import Account, About, Contacts
 
 
-class UserModelSerializer(serializers.ModelSerializer):
+class AccountSerializer(serializers.ModelSerializer):
     # user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:
-        model = UserModel
-        fields = ['first_name', 'last_name', 'username', 'email', 'password']
+        model = Account
+        fields = ['first_name', 'last_name', 'username', 'email']
 
 
 class AboutSerializer(serializers.ModelSerializer):

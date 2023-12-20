@@ -1,17 +1,34 @@
 from django.http import HttpResponse, JsonResponse
-from rest_framework import generics, viewsets, status
+from django.contrib.auth.models import User
 from django.shortcuts import render
+from django.shortcuts import get_object_or_404
+from django.core.exceptions import ObjectDoesNotExist
+
+from rest_framework import generics, viewsets, status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.shortcuts import get_object_or_404
-from .models import UserModel, UserProfile, About, Contacts
+from rest_framework.decorators import api_view
+
+from .models import Account, About, Contacts
 from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
-from .serializers import UserModelSerializer, AboutSerializer, ContactsSerializer
-from django.contrib.auth.models import User
+from .serializers import AccountSerializer, AboutSerializer, ContactsSerializer
+
+
+# @api_view(['GET', ])
+# def api_detail_account_view(request, slug):  #!FIXME add slug into model
+#
+#     try:
+#         account = Account.objects.get(slug=slug)
+#     except ObjectDoesNotExist:  #!FIXME check the exception
+#         return Response(status=status.HTTP_404_NOT_FOUND)
+#
+#     if request.method == 'GET':
+#         serializer = AccountSerializer(account)
+#         return Response(serializer.data)
 
 
 class UserAPIListPagination(PageNumberPagination):
@@ -57,32 +74,32 @@ class UserAPIListPagination(PageNumberPagination):
 #         return Response("Student Deleted Successfully", status=status.HTTP_204_NO_CONTENT)
 
 
-class UserModelAPIList(generics.ListCreateAPIView):
-    queryset = UserModel.objects.all()
-    serializer_class = UserModelSerializer
+class AccountAPIList(generics.ListCreateAPIView):
+    queryset = Account.objects.all()
+    serializer_class = AccountSerializer
     # permission_classes = (IsAuthenticatedOrReadOnly, )
     pagination_class = UserAPIListPagination
 
 
-class UserModelAPIUpdate(generics.RetrieveUpdateAPIView):
-    queryset = UserModel.objects.all()
-    serializer_class = UserModelSerializer
+class AccountAPIUpdate(generics.RetrieveUpdateAPIView):
+    queryset = Account.objects.all()
+    serializer_class = AccountSerializer
     permission_classes = (IsOwnerOrReadOnly, )
     # authentication_classes = (TokenAuthentication, )
 
 
-# class UserModelAPIDestroy(generics.RetrieveDestroyAPIView):
-#     queryset = UserModel.objects.all()
-#     serializer_class = UserModelSerializer
+# class AccountAPIDestroy(generics.RetrieveDestroyAPIView):
+#     queryset = Account.objects.all()
+#     serializer_class = AccountSerializer
 #     permission_classes = (IsAdminOrReadOnly, )
 
 
-class AboutView(ListAPIView):
+class AboutAPIView(ListAPIView):
     queryset = About.objects.all()
     serializer_class = AboutSerializer
 
 
-class ContactsView(ListAPIView):
+class ContactsAPIView(ListAPIView):
     queryset = Contacts.objects.all()
     serializer_class = ContactsSerializer
 
