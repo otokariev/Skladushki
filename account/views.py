@@ -1,34 +1,26 @@
-from django.http import HttpResponse, JsonResponse
-from django.contrib.auth.models import User
-from django.shortcuts import render
-from django.shortcuts import get_object_or_404
-from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth import authenticate
+from django.urls import reverse_lazy, reverse
 
-from rest_framework import generics, viewsets, status
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.generics import ListAPIView
+from rest_framework import status
+from rest_framework.generics import ListAPIView, GenericAPIView
+from rest_framework.mixins import UpdateModelMixin
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import UpdateAPIView
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.authtoken.models import Token
 
 from .models import Account, About, Contacts
-from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
-from .serializers import AccountSerializer, AboutSerializer, ContactsSerializer
-
-
-# @api_view(['GET', ])
-# def api_detail_account_view(request, slug):  #!FIXME add slug into model
-#
-#     try:
-#         account = Account.objects.get(slug=slug)
-#     except ObjectDoesNotExist:  #!FIXME check the exception
-#         return Response(status=status.HTTP_404_NOT_FOUND)
-#
-#     if request.method == 'GET':
-#         serializer = AccountSerializer(account)
-#         return Response(serializer.data)
+from .serializers import (
+    RegistrationSerializer,
+    AccountPropertiesSerializer,
+    ChangePasswordSerializer,
+    AboutSerializer,
+    ContactsSerializer
+)
 
 
 class UserAPIListPagination(PageNumberPagination):
@@ -37,61 +29,185 @@ class UserAPIListPagination(PageNumberPagination):
     max_page_size = 1000
 
 
-# class UserView(APIView):
-#
-#     def get_user(self, pk):
-#         return get_object_or_404(UserModel, user_pk=pk)
-#
-#     def get(self, request, pk=None):
-#         if pk:
-#             user = self.get_user(pk)
-#             serializer = UserSerializer(user)
-#         else:
-#             users = UserModel.objects.all()
-#             serializer = UserSerializer(users, many=True)
-#         return Response(serializer.data)
-#
-#     def post(self, request):
-#         serializer = UserSerializer(data=request.data)
-#
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response("Student Created Successfully", status=status.HTTP_201_CREATED)
-#         return Response("Failed to Add Student", status=status.HTTP_400_BAD_REQUEST)
-#
-#     def put(self, request, pk=None):
-#         user_to_update = self.get_user(pk)
-#         serializer = UserSerializer(instance=user_to_update, data=request.data, partial=True)
-#
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response("Student Updated Successfully")
-#         return Response("Failed to Update Student", status=status.HTTP_400_BAD_REQUEST)
-#
-#     def delete(self, request, pk=None):
-#         user_to_delete = self.get_user(pk)
-#         user_to_delete.delete()
-#         return Response("Student Deleted Successfully", status=status.HTTP_204_NO_CONTENT)
+# Register
+# Response: https://gist.github.com/mitchtabian/c13c41fa0f51b304d7638b7bac7cb694
+# Url: https://<your-domain>/api/account/register
+@api_view(['POST', ])
+@permission_classes([])
+@authentication_classes([])
+def registration_view(request):
+    if request.method == 'POST':
+        data = {}
+        email = request.data.get('email', '0').lower()
+        if validate_email(email) is not None:
+            data['error_message'] = 'That email is already in use.'
+            data['response'] = 'Error'
+            return Response(data)
+
+        # username = request.data.get('username', '0')
+        # if validate_username(username) is not None:
+        #     data['error_message'] = 'That username is already in use.'
+        #     data['response'] = 'Error'
+        #     return Response(data)
+
+        serializer = RegistrationSerializer(data=request.data)
+
+        if serializer.is_valid():
+            account = serializer.save()
+            data['response'] = 'successfully registered new user.'
+            data['email'] = account.email
+            # data['username'] = account.username
+            data['pk'] = account.pk
+            token = Token.objects.get(user=account).key
+            data['token'] = token
+        else:
+            data = serializer.errors
+        return Response(data)
 
 
-class AccountAPIList(generics.ListCreateAPIView):
-    queryset = Account.objects.all()
-    serializer_class = AccountSerializer
-    # permission_classes = (IsAuthenticatedOrReadOnly, )
-    pagination_class = UserAPIListPagination
+def validate_email(email):
+    account = None
+    try:
+        account = Account.objects.get(email=email)
+    except Account.DoesNotExist:
+        return None
+    if account is not None:
+        return email
 
 
-class AccountAPIUpdate(generics.RetrieveUpdateAPIView):
-    queryset = Account.objects.all()
-    serializer_class = AccountSerializer
-    permission_classes = (IsOwnerOrReadOnly, )
-    # authentication_classes = (TokenAuthentication, )
+# def validate_username(username):
+#     account = None
+#     try:
+#         account = Account.objects.get(username=username)
+#     except Account.DoesNotExist:
+#         return None
+#     if account is not None:
+#         return username
 
 
-# class AccountAPIDestroy(generics.RetrieveDestroyAPIView):
-#     queryset = Account.objects.all()
-#     serializer_class = AccountSerializer
-#     permission_classes = (IsAdminOrReadOnly, )
+# Account properties
+# Response: https://gist.github.com/mitchtabian/4adaaaabc767df73c5001a44b4828ca5
+# Url: https://<your-domain>/api/account/
+# Headers: Authorization: Token <token>
+@api_view(['GET', ])
+@permission_classes((IsAuthenticated,))
+def account_properties_view(request):
+    try:
+        account = request.user
+        print(account)
+    except Account.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = AccountPropertiesSerializer(account)
+        return Response(serializer.data)
+
+
+# Account update properties
+# Response: https://gist.github.com/mitchtabian/72bb4c4811199b1d303eb2d71ec932b2
+# Url: https://<your-domain>/api/account/properties/update
+# Headers: Authorization: Token <token>
+@api_view(['PUT', ])
+@permission_classes((IsAuthenticated,))
+def update_account_view(request):
+    try:
+        account = request.user
+    except Account.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'PUT':
+        serializer = AccountPropertiesSerializer(account, data=request.data)
+        data = {}
+        if serializer.is_valid():
+            serializer.save()
+            data['response'] = 'Account update success'
+            return Response(data=data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# LOGIN
+# Response: https://gist.github.com/mitchtabian/8e1bde81b3be342853ddfcc45ec0df8a
+# URL: http://127.0.0.1:8000/api/account/login
+class ObtainAuthTokenView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        context = {}
+
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        account = authenticate(email=email, password=password)
+        if account:
+            try:
+                token = Token.objects.get(user=account)
+            except Token.DoesNotExist:
+                token = Token.objects.create(user=account)
+            context['response'] = 'Successfully authenticated.'
+            context['pk'] = account.pk
+            context['email'] = email.lower()
+            context['token'] = token.key
+        else:
+            context['response'] = 'Error'
+            context['error_message'] = 'Invalid credentials'
+
+        return Response(context)
+
+
+@api_view(['GET', ])
+@permission_classes([])
+@authentication_classes([])
+def does_account_exist_view(request):
+    if request.method == 'GET':
+        email = request.GET.get('email', '').lower()
+        data = {}
+
+        if email:
+            try:
+                account = Account.objects.get(email=email)
+                data['response'] = email
+            except Account.DoesNotExist:
+                data['response'] = "Account does not exist"
+        else:
+            data['response'] = "Email parameter missing"
+
+        # Добавьте отладочный вывод
+        print(f"Input email: {email}, Response: {data['response']}")
+
+        return Response(data)
+
+
+class ChangePasswordView(UpdateAPIView):
+    serializer_class = ChangePasswordSerializer
+    model = Account
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
+
+    def get_object(self, queryset=None):
+        obj = self.request.user
+        return obj
+
+    def put(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            # Check old password
+            if not self.object.check_password(serializer.data.get("old_password")):
+                return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+
+            # confirm the new passwords match
+            new_password = serializer.data.get("new_password")
+            confirm_new_password = serializer.data.get("confirm_new_password")
+            if new_password != confirm_new_password:
+                return Response({"new_password": ["New passwords must match"]}, status=status.HTTP_400_BAD_REQUEST)
+
+            # set_password also hashes the password that the user will get
+            self.object.set_password(serializer.data.get("new_password"))
+            self.object.save()
+            return Response({"response": "successfully changed password"}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AboutAPIView(ListAPIView):
@@ -102,19 +218,3 @@ class AboutAPIView(ListAPIView):
 class ContactsAPIView(ListAPIView):
     queryset = Contacts.objects.all()
     serializer_class = ContactsSerializer
-
-
-def profile(request):  # main page when authorized
-    return HttpResponse('Профиль пользователя')
-
-
-def search(request):  # main page when unregistered or unauthorized
-    return HttpResponse('Поиск')
-
-
-def register(request):
-    return HttpResponse('Регистрация')
-
-
-def login(request):
-    return HttpResponse('Логин')

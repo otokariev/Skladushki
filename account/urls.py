@@ -1,12 +1,18 @@
 from django.urls import path
-from . import views
-from account.views import api_detail_account_view
+from .views import (
+    registration_view,
+    ObtainAuthTokenView,
+    account_properties_view,
+    update_account_view,
+    does_account_exist_view,
+    ChangePasswordView,
+)
 
 urlpatterns = [
-    path('profile', views.profile, name='profile'),
-    path('register/', views.register, name='register'),
-    path('login/', views.login, name='login'),
-    path('search', views.search, name='search'),
-
-    # path('api_detail_account_view/', api_detail_account_view, name='detail'),  #!FIXME change to <slug>/
+    path('check_if_account_exists/', does_account_exist_view, name="check_if_account_exists"),
+    path('change_password/', ChangePasswordView.as_view(), name="change_password"),
+    path('profile/', account_properties_view, name="profile"),
+    path('profile/update/', update_account_view, name="update"),
+    path('login/', ObtainAuthTokenView.as_view(), name="login"),
+    path('register/', registration_view, name="register"),
 ]
