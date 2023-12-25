@@ -27,11 +27,14 @@ INSTALLED_APPS = [
     'account.apps.AccountConfig',
     'rest_framework',
     'rest_framework.authtoken',
+    'corsheaders',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -115,6 +118,13 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'account.Account'
+
+CORS_ALLOW_ALL_ORIGINS = True  # Разрешить все источники (только для тестирования)
+# Или указать конкретные источники:
+# CORS_ALLOWED_ORIGINS = [
+#     "https://example.com",
+#     "http://localhost:3000",
+# ]
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.AllowAllUsersModelBackend',

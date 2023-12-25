@@ -13,6 +13,9 @@ from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.authtoken.models import Token
 
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+
 from .models import Account, About, Contacts
 from .serializers import (
     RegistrationSerializer,
@@ -91,7 +94,7 @@ def validate_email(email):
 # Headers: Authorization: Token <token>
 @api_view(['GET', ])
 @permission_classes((IsAuthenticated,))
-def account_properties_view(request):
+def account_profile_view(request):
     try:
         account = request.user
         print(account)
@@ -109,7 +112,7 @@ def account_properties_view(request):
 # Headers: Authorization: Token <token>
 @api_view(['PUT', ])
 @permission_classes((IsAuthenticated,))
-def update_account_view(request):
+def update_account_profile_view(request):
     try:
         account = request.user
     except Account.DoesNotExist:
@@ -128,15 +131,35 @@ def update_account_view(request):
 # LOGIN
 # Response: https://gist.github.com/mitchtabian/8e1bde81b3be342853ddfcc45ec0df8a
 # URL: http://127.0.0.1:8000/api/account/login
-class ObtainAuthTokenView(APIView):
+class LoginAuthTokenView(APIView):
     authentication_classes = []
     permission_classes = []
 
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'email': openapi.Schema(type=openapi.TYPE_STRING),
+                'password': openapi.Schema(type=openapi.TYPE_STRING),
+            },
+            required=['email', 'password'],
+        ),
+        responses={
+            200: "Successfully authenticated.",
+            400: "Invalid input. Please provide valid email and password.",
+            401: "Invalid credentials. Authentication failed.",
+        },
+    )
     def post(self, request):
         context = {}
 
-        email = request.POST.get('email')
-        password = request.POST.get('password')
+        # email = request.POST.get('email')
+        # password = request.POST.get('password')
+
+        data = request.data
+        email = data.get('email')
+        password = data.get('password')
+
         account = authenticate(email=email, password=password)
         if account:
             try:
@@ -157,7 +180,7 @@ class ObtainAuthTokenView(APIView):
 @api_view(['GET', ])
 @permission_classes([])
 @authentication_classes([])
-def does_account_exist_view(request):
+def check_if_account_exists(request):
     if request.method == 'GET':
         email = request.GET.get('email', '').lower()
         data = {}
