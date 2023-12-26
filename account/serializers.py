@@ -24,10 +24,56 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return account
 
 
-class AccountPropertiesSerializer(serializers.ModelSerializer):
+class AccountProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
-        fields = ['pk', 'email', ]
+        fields = [
+            'pk',
+            'email',
+            'first_name',
+            'last_name',
+            'date_joined',
+            'last_login',
+            'phone',
+            'city',
+            'bio',
+            'photo',
+            'sex',
+        ]
+
+
+class UpdateAccountProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = [
+            'pk',
+            'email',
+            'first_name',
+            'last_name',
+            'phone',
+            'city',
+            'bio',
+            'photo',
+            'sex',
+        ]
+
+
+class LoginAuthTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = [
+            'pk',
+            'email',
+            'password',
+        ]
+
+
+class CheckAccountIfExistSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = [
+            'email',
+        ]
 
 
 class ChangePasswordSerializer(serializers.Serializer):
@@ -39,10 +85,19 @@ class ChangePasswordSerializer(serializers.Serializer):
 class AboutSerializer(serializers.ModelSerializer):
     class Meta:
         model = About
-        fields = '__all__'
+        fields = [
+            'id',
+            'title',
+            'text',
+        ]
 
 
 class ContactsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contacts
-        fields = '__all__'
+        fields = [
+            'id',
+            'title',
+            'phone',
+            'email',
+        ]

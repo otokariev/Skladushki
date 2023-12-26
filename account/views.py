@@ -1,8 +1,7 @@
 from django.contrib.auth import authenticate
-from django.urls import reverse_lazy, reverse
 
 from rest_framework import status
-from rest_framework.generics import ListAPIView, GenericAPIView
+from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import UpdateModelMixin
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
@@ -13,14 +12,16 @@ from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.authtoken.models import Token
 
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
+from drf_spectacular.utils import extend_schema
 
 from .models import Account, About, Contacts
 from .serializers import (
     RegistrationSerializer,
-    AccountPropertiesSerializer,
+    AccountProfileSerializer,
+    UpdateAccountProfileSerializer,
     ChangePasswordSerializer,
+    LoginAuthTokenSerializer,
+    CheckAccountIfExistSerializer,
     AboutSerializer,
     ContactsSerializer
 )
@@ -35,6 +36,7 @@ class UserAPIListPagination(PageNumberPagination):
 # Register
 # Response: https://gist.github.com/mitchtabian/c13c41fa0f51b304d7638b7bac7cb694
 # Url: https://<your-domain>/api/account/register
+@extend_schema(responses=RegistrationSerializer)
 @api_view(['POST', ])
 @permission_classes([])
 @authentication_classes([])
@@ -92,17 +94,17 @@ def validate_email(email):
 # Response: https://gist.github.com/mitchtabian/4adaaaabc767df73c5001a44b4828ca5
 # Url: https://<your-domain>/api/account/
 # Headers: Authorization: Token <token>
+@extend_schema(responses=AccountProfileSerializer)
 @api_view(['GET', ])
 @permission_classes((IsAuthenticated,))
 def account_profile_view(request):
     try:
         account = request.user
-        print(account)
     except Account.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
-        serializer = AccountPropertiesSerializer(account)
+        serializer = AccountProfileSerializer(account)
         return Response(serializer.data)
 
 
@@ -110,6 +112,7 @@ def account_profile_view(request):
 # Response: https://gist.github.com/mitchtabian/72bb4c4811199b1d303eb2d71ec932b2
 # Url: https://<your-domain>/api/account/properties/update
 # Headers: Authorization: Token <token>
+@extend_schema(responses=UpdateAccountProfileSerializer)
 @api_view(['PUT', ])
 @permission_classes((IsAuthenticated,))
 def update_account_profile_view(request):
@@ -119,7 +122,7 @@ def update_account_profile_view(request):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'PUT':
-        serializer = AccountPropertiesSerializer(account, data=request.data)
+        serializer = UpdateAccountProfileSerializer(account, data=request.data)
         data = {}
         if serializer.is_valid():
             serializer.save()
@@ -135,21 +138,7 @@ class LoginAuthTokenView(APIView):
     authentication_classes = []
     permission_classes = []
 
-    @swagger_auto_schema(
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'email': openapi.Schema(type=openapi.TYPE_STRING),
-                'password': openapi.Schema(type=openapi.TYPE_STRING),
-            },
-            required=['email', 'password'],
-        ),
-        responses={
-            200: "Successfully authenticated.",
-            400: "Invalid input. Please provide valid email and password.",
-            401: "Invalid credentials. Authentication failed.",
-        },
-    )
+    @extend_schema(responses=LoginAuthTokenSerializer)
     def post(self, request):
         context = {}
 
@@ -177,6 +166,7 @@ class LoginAuthTokenView(APIView):
         return Response(context)
 
 
+@extend_schema(responses=CheckAccountIfExistSerializer)
 @api_view(['GET', ])
 @permission_classes([])
 @authentication_classes([])
@@ -194,13 +184,11 @@ def check_if_account_exists(request):
         else:
             data['response'] = "Email parameter missing"
 
-        # Добавьте отладочный вывод
-        print(f"Input email: {email}, Response: {data['response']}")
-
         return Response(data)
 
 
-class ChangePasswordView(UpdateAPIView):
+@extend_schema(responses=ChangePasswordSerializer)
+class ChangePasswordView(APIView):
     serializer_class = ChangePasswordSerializer
     model = Account
     permission_classes = (IsAuthenticated,)
@@ -233,11 +221,17 @@ class ChangePasswordView(UpdateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AboutAPIView(ListAPIView):
-    queryset = About.objects.all()
-    serializer_class = AboutSerializer
+@extend_schema(responses=AboutSerializer)
+class AboutAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        queryset = Contacts.objects.all()
+        serializer = ContactsSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class ContactsAPIView(ListAPIView):
-    queryset = Contacts.objects.all()
-    serializer_class = ContactsSerializer
+@extend_schema(responses=ContactsSerializer)
+class ContactsAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        queryset = Contacts.objects.all()
+        serializer = ContactsSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

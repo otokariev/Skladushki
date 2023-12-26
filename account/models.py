@@ -55,7 +55,7 @@ class Account(AbstractBaseUser):
     sex = models.ForeignKey('Sex', verbose_name='Пол', on_delete=models.PROTECT, null=True, blank=True)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    # REQUIRED_FIELDS = ['username']
 
     objects = MyAccountManager()
 

@@ -28,7 +28,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
-    'drf_yasg',
+    # 'drf_yasg',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -132,6 +133,8 @@ AUTHENTICATION_BACKENDS = (
 )
 
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',  # LimitOffsetPagination
     'PAGE_SIZE': 10,
 
@@ -191,3 +194,7 @@ REST_FRAMEWORK = {
 #     "SLIDING_TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainSlidingSerializer",
 #     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 # }
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Django DRF Skladushki',
+}
