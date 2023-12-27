@@ -4,16 +4,37 @@ from .models import Account, About, Contacts
 
 class RegistrationSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
+    photo = serializers.URLField()
 
     class Meta:
         model = Account
-        fields = ['email', 'password', 'password2']
+        fields = [
+            'email',
+            'password',
+            'password2',
+            'first_name',
+            'last_name',
+            'sex',
+            'city',
+            'phone',
+            'bio',
+            'photo',
+        ]
         extra_kwargs = {
             'password': {'write_only': True},
         }
 
     def save(self):
-        account = Account(email=self.validated_data['email'])
+        account = Account(
+            email=self.validated_data['email'],
+            first_name=self.validated_data.get('first_name', ''),
+            last_name=self.validated_data.get('last_name', ''),
+            sex=self.validated_data.get('sex', ''),
+            city=self.validated_data.get('city', ''),
+            phone=self.validated_data.get('phone', ''),
+            bio=self.validated_data.get('bio', ''),
+            photo=self.validated_data.get('photo', ''),
+        )
 
         password = self.validated_data['password']
         password2 = self.validated_data['password2']
@@ -59,6 +80,7 @@ class UpdateAccountProfileSerializer(serializers.ModelSerializer):
 
 
 class LoginAuthTokenSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Account
         fields = [
@@ -66,6 +88,9 @@ class LoginAuthTokenSerializer(serializers.ModelSerializer):
             'email',
             'password',
         ]
+        extra_kwargs = {
+            'password': {'write_only': True},
+        }
 
 
 class CheckAccountIfExistSerializer(serializers.ModelSerializer):

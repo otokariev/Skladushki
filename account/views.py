@@ -1,4 +1,6 @@
 from django.contrib.auth import authenticate
+from django.shortcuts import get_object_or_404
+from drf_spectacular.types import OpenApiTypes
 
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
@@ -12,7 +14,7 @@ from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.authtoken.models import Token
 
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 
 from .models import Account, About, Contacts
 from .serializers import (
@@ -36,20 +38,40 @@ class UserAPIListPagination(PageNumberPagination):
 # Register
 # Response: https://gist.github.com/mitchtabian/c13c41fa0f51b304d7638b7bac7cb694
 # Url: https://<your-domain>/api/account/register
-@extend_schema(responses=RegistrationSerializer)
+@extend_schema(
+    responses=RegistrationSerializer,
+    request=OpenApiTypes.OBJECT,
+    description="Credentials for authentication",
+    parameters=None,
+    examples=[OpenApiExample(
+        name="Example",
+        value={
+            "email": "user@example.com",
+            "password": "password",
+            "password2": "password",
+            "first_name": "Nameless",
+            "last_name": "User",
+            "sex": "1",
+            "city": "NY",
+            "phone": "1(23)-456-789-0",
+            "bio": "My name is...",
+            "photo": "http://img2.wikia.nocookie.net/__cb20140427211725/dragcave/images/6/6e/No_avatar.jpg"
+        })
+    ]
+)
 @api_view(['POST', ])
 @permission_classes([])
 @authentication_classes([])
 def registration_view(request):
     if request.method == 'POST':
         data = {}
-        email = request.data.get('email', '0').lower()
+        email = request.data.get('email').lower()
         if validate_email(email) is not None:
             data['error_message'] = 'That email is already in use.'
             data['response'] = 'Error'
             return Response(data)
 
-        # username = request.data.get('username', '0')
+        # username = request.data.get('username')
         # if validate_username(username) is not None:
         #     data['error_message'] = 'That username is already in use.'
         #     data['response'] = 'Error'
@@ -96,15 +118,30 @@ def validate_email(email):
 # Headers: Authorization: Token <token>
 @extend_schema(responses=AccountProfileSerializer)
 @api_view(['GET', ])
-@permission_classes((IsAuthenticated,))
+# @permission_classes((IsAuthenticated,))
+@permission_classes([])
+@authentication_classes([])
+def account_profile_id_view(request, profile_id):
+    account = get_object_or_404(Account, pk=profile_id)
+
+    if request.method == 'GET':
+        serializer = AccountProfileSerializer(account)
+        return Response(serializer.data)
+
+
+@extend_schema(responses=AccountProfileSerializer)
+@api_view(['GET', ])
+# @permission_classes((IsAuthenticated,))
+@permission_classes([])
+@authentication_classes([])
 def account_profile_view(request):
     try:
-        account = request.user
+        accounts = Account.objects.all()
     except Account.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
-        serializer = AccountProfileSerializer(account)
+        serializer = AccountProfileSerializer(accounts, many=True)
         return Response(serializer.data)
 
 
@@ -138,7 +175,19 @@ class LoginAuthTokenView(APIView):
     authentication_classes = []
     permission_classes = []
 
-    @extend_schema(responses=LoginAuthTokenSerializer)
+    @extend_schema(
+        responses=LoginAuthTokenSerializer,
+        request=OpenApiTypes.OBJECT,
+        description="Credentials for authentication",
+        parameters=None,
+        examples=[OpenApiExample(
+            name="Example",
+            value={
+                "email": "user@example.com",
+                "password": "password",
+            })
+        ]
+    )
     def post(self, request):
         context = {}
 
@@ -166,7 +215,14 @@ class LoginAuthTokenView(APIView):
         return Response(context)
 
 
-@extend_schema(responses=CheckAccountIfExistSerializer)
+# @extend_schema(request=CheckAccountIfExistSerializer, parameters=[{'name': 'email'}])
+# @extend_schema(responses=CheckAccountIfExistSerializer)
+@extend_schema(
+    request=CheckAccountIfExistSerializer,
+    parameters=[
+        OpenApiParameter(name='email', location=OpenApiParameter.QUERY, type=str),
+    ]
+)
 @api_view(['GET', ])
 @permission_classes([])
 @authentication_classes([])
@@ -221,6 +277,8 @@ class ChangePasswordView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@permission_classes([])
+@authentication_classes([])
 @extend_schema(responses=AboutSerializer)
 class AboutAPIView(APIView):
     def get(self, request, *args, **kwargs):
