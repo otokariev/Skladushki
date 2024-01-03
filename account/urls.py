@@ -7,6 +7,7 @@ from .views import (
     update_account_profile_view,
     check_if_account_exists,
     ChangePasswordView,
+    SearchAPIView,
 )
 
 urlpatterns = [
@@ -17,4 +18,5 @@ urlpatterns = [
     path('profile/update/', update_account_profile_view, name="update"),
     path('login/', LoginAuthTokenView.as_view(), name="login"),
     path('register/', registration_view, name="register"),
+    path('search/', SearchAPIView.as_view(), name="search"),
 ]

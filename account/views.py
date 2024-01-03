@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
 from drf_spectacular.types import OpenApiTypes
 
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import UpdateModelMixin
 from rest_framework.pagination import PageNumberPagination
@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.authtoken.models import Token
+from rest_framework.filters import SearchFilter, OrderingFilter
 
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 
@@ -25,7 +26,8 @@ from .serializers import (
     LoginAuthTokenSerializer,
     CheckAccountIfExistSerializer,
     AboutSerializer,
-    ContactsSerializer
+    ContactsSerializer,
+    SearchSerializer,
 )
 
 
@@ -149,7 +151,27 @@ def account_profile_view(request):
 # Response: https://gist.github.com/mitchtabian/72bb4c4811199b1d303eb2d71ec932b2
 # Url: https://<your-domain>/api/account/properties/update
 # Headers: Authorization: Token <token>
-@extend_schema(responses=UpdateAccountProfileSerializer)
+@extend_schema(
+    responses=UpdateAccountProfileSerializer,
+    request=OpenApiTypes.OBJECT,
+    description="Credentials for authentication",
+    parameters=None,
+    examples=[OpenApiExample(
+        name="Example",
+        value={
+            "email": "user@example.com",
+            "password": "password",
+            "password2": "password",
+            "first_name": "Nameless",
+            "last_name": "User",
+            "sex": "1",
+            "city": "NY",
+            "phone": "1(23)-456-789-0",
+            "bio": "My name is...",
+            "photo": "http://img2.wikia.nocookie.net/__cb20140427211725/dragcave/images/6/6e/No_avatar.jpg"
+        })
+    ]
+)
 @api_view(['PUT', ])
 @permission_classes((IsAuthenticated,))
 def update_account_profile_view(request):
@@ -234,7 +256,8 @@ def check_if_account_exists(request):
         if email:
             try:
                 account = Account.objects.get(email=email)
-                data['response'] = email
+                data['response'] = "Account exist"
+                data['email'] = email
             except Account.DoesNotExist:
                 data['response'] = "Account does not exist"
         else:
@@ -243,7 +266,20 @@ def check_if_account_exists(request):
         return Response(data)
 
 
-@extend_schema(responses=ChangePasswordSerializer)
+@extend_schema(
+    responses=ChangePasswordSerializer,
+    request=OpenApiTypes.OBJECT,
+    description="Credentials for authentication",
+    parameters=None,
+    examples=[OpenApiExample(
+        name="Example",
+        value={
+            "old_password": "password",
+            "new_password": "new_password",
+            "confirm_new_password": "new_password",
+        })
+    ]
+)
 class ChangePasswordView(APIView):
     serializer_class = ChangePasswordSerializer
     model = Account
@@ -293,3 +329,18 @@ class ContactsAPIView(APIView):
         queryset = Contacts.objects.all()
         serializer = ContactsSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@extend_schema(responses=SearchSerializer)
+class SearchAPIView(generics.ListAPIView):
+    queryset = Account.objects.all()
+    serializer_class = SearchSerializer
+    filter_backends = [SearchFilter]
+    search_fields = [
+        'email',
+        'first_name',
+        'last_name',
+        'phone',
+        'city',
+        'bio',
+    ]

@@ -126,3 +126,17 @@ class ContactsSerializer(serializers.ModelSerializer):
             'phone',
             'email',
         ]
+
+
+class SearchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = [
+            'pk',
+            'email',
+            'first_name',
+            'last_name',
+            'phone',
+            'city',
+            'bio',
+        ]
