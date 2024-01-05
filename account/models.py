@@ -78,7 +78,8 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 
 
 class Sex(models.Model):
-    name = models.CharField(max_length=100, db_index=True)
+    name = models.CharField(max_length=10)
+    identifier = models.CharField(max_length=10, unique=True)
 
     def __str__(self):
         return self.name

@@ -344,3 +344,11 @@ class SearchAPIView(generics.ListAPIView):
         'city',
         'bio',
     ]
+
+
+class AccountListBySex(generics.ListAPIView):
+    serializer_class = AccountProfileSerializer
+
+    def get_queryset(self):
+        sex_identifier = self.kwargs['sex_identifier']
+        return Account.objects.filter(sex__identifier=sex_identifier)

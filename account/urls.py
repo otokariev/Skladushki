@@ -8,6 +8,7 @@ from .views import (
     check_if_account_exists,
     ChangePasswordView,
     SearchAPIView,
+    AccountListBySex,
 )
 
 urlpatterns = [
@@ -19,4 +20,5 @@ urlpatterns = [
     path('login/', LoginAuthTokenView.as_view(), name="login"),
     path('register/', registration_view, name="register"),
     path('search/', SearchAPIView.as_view(), name="search"),
+    path('<str:sex_identifier>/', AccountListBySex.as_view(), name='sex_identifier'),
 ]
